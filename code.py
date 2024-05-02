@@ -1,7 +1,5 @@
-# SPDX-FileCopyrightText: 2020 Jeff Epler for Adafruit Industries
-#
-# SPDX-License-Identifier: MIT
-
+# Code copyright Jake Williams, Sean Cheng, Ankit Rustagi
+# 2024 Jake Williams
 from adafruit_display_text.label import Label
 from adafruit_display_text.scrolling_label import ScrollingLabel
 from adafruit_display_shapes.rect import Rect
