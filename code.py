@@ -26,7 +26,7 @@ import json
 import string
 import re
 import math
-from api import *
+from api import extract_baseball, extract_basketball, extract_football, extract_ncaab
 
 #Color palatte
 WHITE = 0xffffff
@@ -982,6 +982,7 @@ def display_NBA(display, game_position, rtcobj):
     q2_bmp = OnDiskBitmap(open("bitmaps/q2.bmp", "rb"))
     q3_bmp = OnDiskBitmap(open("bitmaps/q3.bmp", "rb"))
     q4_bmp = OnDiskBitmap(open("bitmaps/q4.bmp", "rb"))
+    ot_bmp = OnDiskBitmap(open("bitmaps/ot.bmp", "rb"))
     fin_bmp = OnDiskBitmap(open("bitmaps/fin.bmp", "rb"))
     
     q_tilegrid = TileGrid(
@@ -1002,6 +1003,8 @@ def display_NBA(display, game_position, rtcobj):
             q_tilegrid.bitmap = q3_bmp
         elif games[game_position]['QUARTER'] == 4:
             q_tilegrid.bitmap = q4_bmp
+        elif games[game_position]['QUARTER'] > 4:
+            q_tilegrid.bitmap = ot_bmp
     else:
         q_tilegrid.bitmap = fin_bmp
     
@@ -1138,8 +1141,7 @@ def display_NCAAB(display, game_position, rtcobj):
     
     q1_bmp = OnDiskBitmap(open("bitmaps/q1.bmp", "rb"))
     q2_bmp = OnDiskBitmap(open("bitmaps/q2.bmp", "rb"))
-    q3_bmp = OnDiskBitmap(open("bitmaps/q3.bmp", "rb"))
-    q4_bmp = OnDiskBitmap(open("bitmaps/q4.bmp", "rb"))
+    ot_bmp = OnDiskBitmap(open("bitmaps/ot.bmp", "rb"))
     fin_bmp = OnDiskBitmap(open("bitmaps/fin.bmp", "rb"))
     
     q_tilegrid = TileGrid(
@@ -1156,10 +1158,8 @@ def display_NCAAB(display, game_position, rtcobj):
             q_tilegrid.bitmap = q1_bmp
         elif games[game_position]['QUARTER'] == 2:
             q_tilegrid.bitmap = q2_bmp
-        elif games[game_position]['QUARTER'] == 3:
-            q_tilegrid.bitmap = q3_bmp
-        elif games[game_position]['QUARTER'] == 4:
-            q_tilegrid.bitmap = q4_bmp
+        elif games[game_position]['QUARTER'] >= 3:
+            q_tilegrid.bitmap = ot_bmp
     else:
         q_tilegrid.bitmap = fin_bmp
     
@@ -1282,8 +1282,8 @@ def display_NFL(display, game_position, rtcobj):
     q2_bmp = OnDiskBitmap(open("bitmaps/q2.bmp", "rb"))
     q3_bmp = OnDiskBitmap(open("bitmaps/q3.bmp", "rb"))
     q4_bmp = OnDiskBitmap(open("bitmaps/q4.bmp", "rb"))
+    ot_bmp = OnDiskBitmap(open("bitmaps/ot.bmp", "rb"))
     fin_bmp = OnDiskBitmap(open("bitmaps/fin.bmp", "rb"))
-
     
     q_tilegrid = TileGrid(
     q1_bmp,
@@ -1303,6 +1303,8 @@ def display_NFL(display, game_position, rtcobj):
             q_tilegrid.bitmap = q3_bmp
         elif games[game_position]['QUARTER'] == 4:
             q_tilegrid.bitmap = q4_bmp
+        elif games[game_position]['QUARTER'] > 4:
+            q_tilegrid.bitmap= ot_bmp
     else:
         q_tilegrid.bitmap = fin_bmp
         
@@ -1479,7 +1481,7 @@ if __name__ == "__main__":
     collect()
     display = init_Display()
     #ssid, password = find_WIFI()
-    rtcobj = init_WIFI('SpectrumSetup-3D', 'YourMomIsBoss')
+    rtcobj = init_WIFI('O-Block', 'RIPKingVon')
 
     remount("/", False)
     
