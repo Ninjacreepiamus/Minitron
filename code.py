@@ -767,13 +767,14 @@ def display_MLB(display, game_position, rtcobj):
         y=14 # Top L
     )
     
+    # I want to add an option for this to be blank if needed
     inning_tilegrid = TileGrid(
     top_inning_bmp,
     pixel_shader=getattr(top_inning_bmp, 'pixel_shader', ColorConverter()),
     tile_width=5,
     tile_height=8,
     x=26,
-    y=27,
+    y=22,
     )
     
     if top_or_bottom(inning_format(games[game_position]['INNING'])) is True:
