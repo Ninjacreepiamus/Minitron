@@ -26,7 +26,7 @@ import json
 import string
 import re
 import math
-from api import extract_baseball, extract_basketball, extract_football, extract_ncaab
+from api import extract_baseball, extract_basketball, extract_football, extract_ncaab, extract_cfb
 
 #Color palatte
 WHITE = 0xffffff
@@ -84,7 +84,8 @@ NFL = 0
 MLB = 1
 NBA = 2
 NCAAB = 4
-CLOCK = 5
+CFB = 5
+CLOCK = 6
 state = CLOCK
 
 pool = SocketPool(radio)
@@ -341,6 +342,7 @@ def display_Menu(display):
     mlb_filename = "bitmaps/mlb.bmp"
     nba_filename = "bitmaps/nba.bmp"
     ncaab_filename = "bitmaps/ncaab.bmp"
+    cfb_filename = "bitmaps/cfb.bmp"
 
     # CircuitPython 6 & 7 compatible
     nfl_bitmap = OnDiskBitmap(open(nfl_filename, "rb"))
@@ -382,6 +384,16 @@ def display_Menu(display):
         x=8,
         y=2
     )
+
+    cfb_bitmap = OnDiskBitmap(open(cfb_filename, "rb"))
+    cfb_tilegrid = TileGrid(
+        cfb_bitmap,
+        pixel_shader=getattr(cfb_bitmap, 'pixel_shader', ColorConverter()),
+        tile_width=17,
+        tile_height=17,
+        x=38,
+        y=2
+    )
     
     
     nfl_text = Label(
@@ -411,6 +423,13 @@ def display_Menu(display):
     text="NCAAB")
     ncaab_text.x = 3
     ncaab_text.y = 24
+
+    cfb_text = Label(
+    FONT,
+    color=RED,
+    text="CFB")
+    cfb_text.x = 38
+    cfb_text.y = 24
 
     group = Group()
     group.append(wifi_small_tilegrid)
@@ -450,21 +469,30 @@ def display_Menu(display):
             elif position == NBA:
                 group.append(ncaab_tilegrid)
                 group.append(ncaab_text)
+                group.append(cfb_tilegrid)
+                group.append(cfb_text)
                 group.remove(nfl_tilegrid)
                 group.remove(mlb_tilegrid)
                 group.remove(nba_tilegrid)
                 group.remove(nfl_text)
                 group.remove(mlb_text)
                 group.remove(nba_text)
+                ncaab_text.color = MAGENTA
+                cfb_text.color = RED
                 display.refresh()
                 position = NCAAB
-
             elif position == NCAAB:
+                ncaab_text.color = RED
+                cfb_text.color = MAGENTA
+                position = CFB
+            elif position == CFB:
                 nfl_text.color = MAGENTA
                 mlb_text.color = RED
                 nba_text.color = RED
                 group.remove(ncaab_tilegrid)
                 group.remove(ncaab_text)
+                group.remove(cfb_tilegrid)
+                group.remove(cfb_text)
                 group.append(nfl_tilegrid)
                 group.append(mlb_tilegrid)
                 group.append(nba_tilegrid)
@@ -480,14 +508,18 @@ def display_Menu(display):
             if position == NFL:
                 group.append(ncaab_tilegrid)
                 group.append(ncaab_text)
+                group.append(cfb_tilegrid)
+                group.append(cfb_text)
                 group.remove(nfl_tilegrid)
                 group.remove(mlb_tilegrid)
                 group.remove(nba_tilegrid)
                 group.remove(nfl_text)
                 group.remove(mlb_text)
                 group.remove(nba_text)
+                cfb_text.color = MAGENTA
+                ncaab_text.color = RED
                 display.refresh()
-                position = NCAAB
+                position = CFB
             elif position == MLB:
                 nfl_text.color = MAGENTA
                 mlb_text.color = RED
@@ -504,6 +536,8 @@ def display_Menu(display):
                 nba_text.color = MAGENTA
                 group.remove(ncaab_tilegrid)
                 group.remove(ncaab_text)
+                group.remove(cfb_tilegrid)
+                group.remove(cfb_text)
                 group.append(nfl_tilegrid)
                 group.append(mlb_tilegrid)
                 group.append(nba_tilegrid)
@@ -512,6 +546,10 @@ def display_Menu(display):
                 group.append(nba_text)
                 display.refresh()
                 position = NBA
+            elif position == CFB:
+                ncaab_text.color = MAGENTA
+                cfb_text.color = RED
+                position = NCAAB
             sleep(0.4)
         
         elif (BACK_button.value == False):
@@ -556,6 +594,13 @@ def display_GAMES(display, rtcobj):
                 games = extract_ncaab(pool)
             else:
                 f = open("ncaab.json", "r")
+                games = json.load(f)
+                f.close()
+        elif state == CFB:
+            if radio.connected == True:
+                games = extract_cfb(pool)
+            else:
+                f = open("cfb.json", "r")
                 games = json.load(f)
                 f.close()
     
@@ -634,6 +679,8 @@ def display_GAMES(display, rtcobj):
                         games = extract_football(pool)
                     elif state == NCAAB:
                         games = extract_ncaab(pool)
+                    elif state == CFB:
+                        games = extract_cfb(pool)
                     api_tilegrid.hidden = True
                     game1_text.text = games[game_position % len(games)]["AWAY"] + ' at ' + games[game_position % len(games)]["HOME"]
                     game2_text.text = games[(game_position + 1) % len(games)]["AWAY"] + ' at ' + games[(game_position + 1) % len(games)]["HOME"]
@@ -664,6 +711,8 @@ def display_GAMES(display, rtcobj):
                 display_NBA(display, game_position, rtcobj)
             elif state == NCAAB:
                 display_NCAAB(display, game_position, rtcobj)
+            elif state == CFB:
+                display_NFL(display, game_position, rtcobj)
 
             sleep(0.4)
             return state
@@ -1491,7 +1540,7 @@ if __name__ == "__main__":
     while True:
         if state == MENU:
             state = display_Menu(display)
-        elif state == NFL or state == NBA or state == MLB or state == NCAAB:
+        elif state == NFL or state == NBA or state == MLB or state == NCAAB or state == CFB:
             state = display_GAMES(display, rtcobj)
         elif state == CLOCK:
             if radio.connected:

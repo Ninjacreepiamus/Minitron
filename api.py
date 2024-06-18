@@ -8,6 +8,7 @@ mlb_url = "http://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard"
 nba_url = "http://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard"
 nfl_url = "http://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
 ncaab_url = "http://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/scoreboard"
+cfb_url = "http://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard"
 
 def extract_baseball(pool):
     baseball_games = []
@@ -205,6 +206,52 @@ def extract_football(pool):
         football_games.append(football_game_dict)
    
     with open("football.json", "w") as f2:
+        json.dump(football_games, f2)
+    
+    f2.close()
+    return football_games
+
+def extract_cfb(pool):
+    football_games = []
+    requests = Session(pool, create_default_context())
+    
+    try:
+        response = requests.get(cfb_url)
+    except:
+        print("Website does not work....")
+        return
+
+    json_response = response.json()
+
+    for i in range(len(json_response["events"])): # len(json_response["events"])
+        game = json_response["events"][i]
+        home_team = game["competitions"][0]["competitors"][0]["team"].get("abbreviation", "N/A")
+        away_team = game["competitions"][0]["competitors"][1]["team"].get("abbreviation", "N/A")
+        home_color_main = game["competitions"][0]["competitors"][0]["team"].get("color", 'ff0000')
+        home_color_alt = game["competitions"][0]["competitors"][0]["team"].get("alternateColor", '000000')
+        away_color_main = game["competitions"][0]["competitors"][1]["team"].get("color", '0000ff')
+        away_color_alt = game["competitions"][0]["competitors"][1]["team"].get("alternateColor", '000000')
+        home_score = game["competitions"][0]["competitors"][0].get("score", "N/A")
+        away_score = game["competitions"][0]["competitors"][1].get("score", "N/A")
+        quarter = game["competitions"][0]["status"].get("period", "N/A")
+        finished = game["competitions"][0]["status"]["type"].get("completed", False)
+   
+        football_game_dict = {
+            "HOME": home_team,
+            "AWAY": away_team,
+            "HOME_COLOR_MAIN" : home_color_main,
+            "HOME_COLOR_ALT" : home_color_alt,
+            "AWAY_COLOR_MAIN" : away_color_main,
+            "AWAY_COLOR_ALT": away_color_alt,
+            "HOME_SCORE": home_score,
+            "AWAY_SCORE": away_score,
+            "QUARTER": quarter,
+            "FINISHED": finished
+        }
+       
+        football_games.append(football_game_dict)
+   
+    with open("cfb.json", "w") as f2:
         json.dump(football_games, f2)
     
     f2.close()
